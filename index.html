@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>照片隐私清理工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+        }
+        
+        .drop-zone {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 60px 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s;
+            background: #f8f9ff;
+        }
+        
+        .drop-zone:hover, .drop-zone.dragover {
+            background: #eef1ff;
+            border-color: #764ba2;
+        }
+        
+        .drop-zone i {
+            font-size: 4rem;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .drop-zone p {
+            font-size: 1.2rem;
+            margin: 10px 0;
+        }
+        
+        .drop-zone .browse-btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .drop-zone .browse-btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .preview-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .image-preview {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .image-preview img {
+            width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .info-panel {
+            flex: 1;
+            min-width: 300px;
+            background: #f8f9ff;
+            border-radius: 10px;
+            padding: 25px;
+        }
+        
+        .info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e5ff;
+        }
+        
+        h2 {
+            color: #667eea;
+        }
+        
+        .clear-all-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .clear-all-btn:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+        }
+        
+        .info-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e5ff;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            font-family: monospace;
+            background: #eef1ff;
+            padding: 8px 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        
+        .warning {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .action-btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .download-btn {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            color: white;
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(76, 175, 80, 0.3);
+        }
+        
+        .new-photo-btn {
+            background: linear-gradient(135deg, #2196F3, #0D47A1);
+            color: white;
+        }
+        
+        .new-photo-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(33, 150, 243, 0.3);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+        }
+        
+        .privacy-note {
+            background: #fff8e1;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        @media (max-width: 768px) {
+            .preview-section {
+                flex-direction: column;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-shield-alt"></i> 照片隐私清理工具</h1>
+            <p class="subtitle">拖入照片，一键清除GPS位置、拍摄设备等隐私信息</p>
+        </header>
+        
+        <div class="main-content">
+            <!-- 拖放区域 -->
+            <div id="dropZone" class="drop-zone">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>拖放照片到此处，或点击选择文件</p>
+                <p style="font-size: 1rem; color: #666;">支持 JPG、JPEG、PNG 格式</p>
+                <div class="browse-btn">
+                    <i class="fas fa-folder-open"></i> 选择照片
+                </div>
+                <input type="file" id="fileInput" accept="image/jpeg,image/png,image/jpg" class="hidden">
+            </div>
+            
+            <!-- 预览和信息区域 -->
+            <div id="previewSection" class="preview-section hidden">
+                <div class="image-preview">
+                    <h2>照片预览</h2>
+                    <div style="margin-top: 15px;">
+                        <img id="imagePreview" src="" alt="照片预览">
+                    </div>
+                </div>
+                
+                <div class="info-panel">
+                    <div class="info-header">
+                        <h2>隐私信息</h2>
+                        <button id="clearAllBtn" class="clear-all-btn">
+                            <i class="fas fa-eraser"></i> 一键清除全部
+                        </button>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">文件信息</div>
+                        <div id="fileInfo" class="info-value">等待解析...</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">GPS位置</div>
+                        <div id="gpsInfo" class="info-value warning">正在检测GPS信息...</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">设备信息</div>
+                        <div id="deviceInfo" class="info-value">正在检测设备信息...</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">拍摄时间</div>
+                        <div id="timeInfo" class="info-value">正在检测时间信息...</div>
+                    </div>
+                    
+                    <div class="privacy-note">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>隐私提示：</strong> 照片中的元数据（EXIF）可能包含您的GPS位置、拍摄设备、拍摄时间等敏感信息。在上传照片到社交媒体前，建议清除这些信息。
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 操作按钮 -->
+            <div id="actionButtons" class="actions hidden">
+                <button id="downloadBtn" class="action-btn download-btn">
+                    <i class="fas fa-download"></i> 下载清理后的照片
+                </button>
+                <button id="newPhotoBtn" class="action-btn new-photo-btn">
+                    <i class="fas fa-plus"></i> 处理新照片
+                </button>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2026 照片隐私清理工具 | 完全在浏览器中运行，不上传任何数据到服务器</p>
+        </footer>
+    </div>
+    
+    <!-- 引入EXIF.js库 -->
+    <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+    
+    <script>
+        // DOM元素
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const previewSection = document.getElementById('previewSection');
+        const imagePreview = document.getElementById('imagePreview');
+        const fileInfo = document.getElementById('fileInfo');
+        const gpsInfo = document.getElementById('gpsInfo');
+        const deviceInfo = document.getElementById('deviceInfo');
+        const timeInfo = document.getElementById('timeInfo');
+        const clearAllBtn = document.getElementById('clearAllBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const newPhotoBtn = document.getElementById('newPhotoBtn');
+        const actionButtons = document.getElementById('actionButtons');
+        
+        // 当前处理的文件
+        let currentFile = null;
+        let originalExifData = null;
+        
+        // 初始化事件监听
+        function init() {
+            // 点击浏览按钮
+            dropZone.querySelector('.browse-btn').addEventListener('click', () => {
+                fileInput.click();
+            });
+            
+            // 文件选择
+            fileInput.addEventListener('change', handleFileSelect);
+            
+            // 拖放事件
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+            
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('dragover');
+            });
+            
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                
+                if (e.dataTransfer.files.length) {
+                    handleFile(e.dataTransfer.files[0]);
+                }
+            });
+            
+            // 清除所有信息
+            clearAllBtn.addEventListener('click', clearAllMetadata);
+            
+            // 下载清理后的照片
+            downloadBtn.addEventListener('click', downloadCleanedImage);
+            
+            // 处理新照片
+            newPhotoBtn.addEventListener('click', () => {
+                previewSection.classList.add('hidden');
+                actionButtons.classList.add('hidden');
+                dropZone.classList.remove('hidden');
+                fileInput.value = '';
+                currentFile = null;
+            });
+        }
+        
+        // 处理文件选择
+        function handleFileSelect(e) {
+            if (e.target.files.length) {
+                handleFile(e.target.files[0]);
+            }
+        }
+        
+        // 处理文件
+        function handleFile(file) {
+            // 检查文件类型
+            if (!file.type.match('image/jpeg') && !file.type.match('image/png')) {
+                alert('请选择JPG或PNG格式的图片文件！');
+                return;
+            }
+            
+            currentFile = file;
+            
+            // 显示预览
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                previewSection.classList.remove('hidden');
+                actionButtons.classList.remove('hidden');
+                dropZone.classList.add('hidden');
+                
+                // 显示文件信息
+                fileInfo.textContent = `${file.name} (${formatFileSize(file.size)})`;
+                
+                // 解析EXIF数据
+                parseExifData(e.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // 解析EXIF数据
+        function parseExifData(imageDataURL) {
+            // 重置显示
+            gpsInfo.innerHTML = '<span class="warning">正在检测GPS信息...</span>';
+            deviceInfo.textContent = '正在检测设备信息...';
+            timeInfo.textContent = '正在检测时间信息...';
+            
+            // 创建图片对象用于EXIF解析
+            const img = new Image();
+            img.onload = function() {
+                EXIF.getData(img, function() {
+                    // 保存原始EXIF数据
+                    originalExifData = EXIF.getAllTags(this);
+                    
+                    // 显示GPS信息
+                    const gpsData = extractGPSData(this);
+                    if (gpsData) {
+                        gpsInfo.innerHTML = `
+                            <strong>检测到GPS位置：</strong><br>
+                            纬度: ${gpsData.latitude.toFixed(6)}° ${gpsData.latRef}<br>
+                            经度: ${gpsData.longitude.toFixed(6)}° ${gpsData.lonRef}<br>
+                            <a href="https://www.google.com/maps?q=${gpsData.latitude},${gpsData.longitude}" 
+                               target="_blank" style="color: #667eea; text-decoration: underline;">
+                                <i class="fas fa-map-marker-alt"></i> 在地图上查看
+                            </a>
+                        `;
+                    } else {
+                        gpsInfo.innerHTML = '<span style="color: #4CAF50;">未检测到GPS位置信息 ✓</span>';
+                    }
+                    
+                    // 显示设备信息
+                    const deviceData = extractDeviceData(this);
+                    if (deviceData.make || deviceData.model) {
+                        let deviceText = '';
+                        if (deviceData.make) deviceText += `品牌: ${deviceData.make}<br>`;
+                        if (deviceData.model) deviceText += `型号: ${deviceData.model}`;
+                        deviceInfo.innerHTML = deviceText;
+                    } else {
+                        deviceInfo.textContent = '未检测到设备信息';
+                    }
+                    
+                    // 显示拍摄时间
+                    const dateTime = EXIF.getTag(this, 'DateTimeOriginal') || 
+                                    EXIF.getTag(this, 'DateTime') || 
+                                    EXIF.getTag(this, 'DateTimeDigitized');
+                    
+                    if (dateTime) {
+                        // 转换EXIF日期格式 (YYYY:MM:DD HH:MM:SS)
+                        const dateStr = dateTime.replace(/:/g, '-', 1).replace(/:/g, '/', 2);
+                        timeInfo.textContent = new Date(dateStr).toLocaleString('zh-CN');
+                    } else {
+                        timeInfo.textContent = '未检测到拍摄时间';
+                    }
+                });
+            };
+            img.src = imageDataURL;
+        }
+        
+        // 提取GPS数据
+        function extractGPSData(img) {
+            const gpsLatitude = EXIF.getTag(img, 'GPSLatitude');
+            const gpsLatitudeRef = EXIF.getTag(img, 'GPSLatitudeRef');
+            const gpsLongitude = EXIF.getTag(img, 'GPSLongitude');
+            const gpsLongitudeRef = EXIF.getTag(img, 'GPSLongitudeRef');
+            
+            if (gpsLatitude && gpsLongitude) {
+                const lat = convertDMSToDD(gpsLatitude[0], gpsLatitude[1], gpsLatitude[2], gpsLatitudeRef);
+                const lon = convertDMSToDD(gpsLongitude[0], gpsLongitude[1], gpsLongitude[2], gpsLongitudeRef);
+                
+                return {
+                    latitude: lat,
+                    longitude: lon,
+                    latRef: gpsLatitudeRef,
+                    lonRef: gpsLongitudeRef
+                };
+            }
+            
+            return null;
+        }
+        
+        // 转换度分秒为十进制
+        function convertDMSToDD(degrees, minutes, seconds, direction) {
+            let dd = degrees + minutes/60 + seconds/(60 * 60);
+            
+            if (direction === 'S' || direction === 'W') {
+                dd = dd * -1;
+            }
+            
+            return dd;
+        }
+        
+        // 提取设备信息
+        function extractDeviceData(img) {
+            return {
+                make: EXIF.getTag(img, 'Make'),
+                model: EXIF.getTag(img, 'Model')
+            };
+        }
+        
+        // 清除所有元数据
+        function clearAllMetadata() {
+            if (!currentFile) return;
+            
+            // 创建Canvas来重新绘制图片（清除EXIF）
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                
+                // 将清理后的图片保存为数据URL
+                const cleanedDataURL = canvas.toDataURL('image/jpeg', 0.9);
+                imagePreview.src = cleanedDataURL;
+                
+                // 更新当前文件
+                currentFile = dataURLtoFile(cleanedDataURL, currentFile.name.replace(/\.[^/.]+$/, "") + "_cleaned.jpg");
+                
+                // 更新文件信息
+                fileInfo.textContent = `${currentFile.name} (${formatFileSize(currentFile.size)})`;
+                
+                // 清除信息显示
+                gpsInfo.innerHTML = '<span style="color: #4CAF50;">GPS信息已清除 ✓</span>';
+                deviceInfo.innerHTML = '<span style="color: #4CAF50;">设备信息已清除 ✓</span>';
+                timeInfo.innerHTML = '<span style="color: #4CAF50;">拍摄时间已清除 ✓</span>';
+                
+                // 显示成功提示
+                showNotification('所有隐私信息已清除！', 'success');
+            };
+            img.src = imagePreview.src;
+        }
+        
+        // 下载清理后的图片
+        function downloadCleanedImage() {
+            if (!currentFile) return;
+            
+            // 创建临时链接
+            const link = document.createElement('a');
+            link.href = imagePreview.src;
+            link.download = currentFile.name;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('照片下载成功！', 'success');
+        }
+        
+        // 辅助函数：格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // 辅助函数：DataURL转File对象
+        function dataURLtoFile(dataurl, filename) {
+            const arr = dataurl.split(',');
+            const mime = arr[0].match(/:(.*?);/)[1];
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            
+            while (n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            
+            return new File([u8arr], filename, {type: mime});
+        }
+        
+        // 显示通知
+        function showNotification(message, type) {
+            // 移除之前的通知
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            // 创建新通知
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                border-radius: 10px;
+                color: white;
+                font-weight: bold;
+                z-index: 1000;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                animation: slideIn 0.3s ease;
+            `;
+            
+            if (type === 'success') {
+                notification.style.background = 'linear-gradient(135deg, #4CAF50, #2E7D32)';
+            } else {
+                notification.style.background = 'linear-gradient(135deg, #ff6b6b, #c92a2a)';
+            }
+            
+            document.body.appendChild(notification);
+            
+            // 3秒后移除通知
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+            
+            // 添加CSS动画
+            if (!document.querySelector('#notification-styles')) {
+                const style = document.createElement('style');
+                style.id = 'notification-styles';
+                style.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                    @keyframes slideOut {
+                        from { transform: translateX(0); opacity: 1; }
+                        to { transform: translateX(100%); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
+        
+        // 添加键盘快捷键支持
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+S 保存
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                if (currentFile) {
+                    downloadCleanedImage();
+                }
+            }
+            // Escape 键返回
+            if (e.key === 'Escape' && !previewSection.classList.contains('hidden')) {
+                newPhotoBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>
